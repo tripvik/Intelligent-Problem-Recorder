@@ -1,0 +1,62 @@
+﻿@page "/recorder"
+
+@inject NavigationManager NavManager
+@inject StepRecorderService Recorder
+@inject ILogger<AppScan> Logger
+@inject ISnackbar Snackbar
+
+<MudGrid>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudText Typo="Typo.h3">Start recording the problem.</MudText>
+        <div class="pl-1 my-4">
+            <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+                After starting the recording, reproduce the problem.
+            </MudText>
+        </div>
+        <div class="d-flex py-4 mb-16 mb-md-0">
+            <MudButton OnClick="ToggleRecording" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Style="width:180px;height:50px;border-radius:30px">
+                @if (_recording)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Recording...</MudText>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Camera" />
+                    <MudText Class="px-2">Start</MudText>
+                }
+            </MudButton>
+            @if(string.Equals(_recordingComplete, "Yes"))
+            {
+                <MudButton OnClick="ToggleRecording" StartIcon="@Icons.Material.Filled.Search" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="mx-3" Style="width:180px;height:50px;border-radius:30px">Analyze</MudButton>
+            }
+        </div>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private bool _recording = false;
+    private string _recordingComplete = string.Empty;
+    protected void ToggleRecording()
+    {
+        try
+        {
+            if (_recording)
+            {
+                Recorder.StopRecording();
+                _recordingComplete = "Yes";
+                _recording = false;
+            }
+            else
+            {
+                Recorder.StartRecording();
+                _recording = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.InnerException?.Message ?? ex.Message, Severity.Error);
+        }
+    }
+}

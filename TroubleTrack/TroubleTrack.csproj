@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>TroubleTrack</RootNamespace>
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableDefaultCssItems>false</EnableDefaultCssItems>
+
+        <!-- Display name -->
+        <ApplicationTitle>TroubleTrack</ApplicationTitle>
+
+        <!-- App Identifier -->
+        <ApplicationId>com.companyname.troubletrack</ApplicationId>
+        <ApplicationIdGuid>17A23200-2BFC-4B64-8DD0-A3D459060295</ApplicationIdGuid>
+
+        <!-- Versions -->
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+        <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+        <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+        <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+        <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+        <GenerateTestArtifacts>True</GenerateTestArtifacts>
+        <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- App Icon -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+
+        <!-- Splash Screen -->
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+
+        <!-- Images -->
+        <MauiImage Include="Resources\Images\*" />
+        <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
+
+        <!-- Custom Fonts -->
+        <MauiFont Include="Resources\Fonts\*" />
+
+        <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\Fonts\appd-font--regular.woff2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+        <PackageReference Include="CliWrap" Version="3.6.4" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+        <PackageReference Include="MudBlazor" Version="6.8.0" />
+        <PackageReference Include="System.Management" Version="7.0.2" />
+		<FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="C:\Users\vitripathi\.nuget\packages\microsoft.windowsappsdk\1.5.240607001\buildTransitive\..\include\WindowsAppSDK-VersionInfo.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="C:\Users\vitripathi\.nuget\packages\microsoft.windowsappsdk\1.5.240607001\buildTransitive\..\include\WindowsAppSDK-VersionInfo.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="C:\Users\vitripathi\.nuget\packages\microsoft.windowsappsdk\1.5.240607001\buildTransitive\..\include\WindowsAppSDK-VersionInfo.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="C:\Users\vitripathi\.nuget\packages\microsoft.windowsappsdk\1.5.240607001\buildTransitive\..\include\WindowsAppSDK-VersionInfo.cs" />
+    </ItemGroup>
+
+</Project>

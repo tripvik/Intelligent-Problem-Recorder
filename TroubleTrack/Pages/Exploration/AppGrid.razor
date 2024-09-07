@@ -1,0 +1,67 @@
+﻿<MudDataGrid T="ApplicationDetail" MultiSelection="true" Items="@Application" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@_quickFilter"
+             Hideable="true" SelectedItemsChanged="@SelectedItemsChanged">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Type</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="ApplicationDetail" />
+        <PropertyColumn Property="x => x.Name" Sortable="false" Filterable="false" />
+        <PropertyColumn Property="x => x.Type" />
+        <PropertyColumn Property="x => x.Path" SortBy="@_sortBy" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="ApplicationDetail" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter]
+    public List<ApplicationDetail> Application { get; set; } = new();
+
+    [Parameter]
+    public string Type { get; set; } = string.Empty;
+
+    public HashSet<ApplicationDetail> SelectedApplications { get; set; } = new();
+
+    private string _searchString;
+    private bool _sortNameByLength;
+    private List<string> _events = new();
+
+    // custom sort by name length
+    private Func<ApplicationDetail, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.Name.Length;
+        else
+            return x.Name;
+    };
+
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<ApplicationDetail, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Type.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.Name} {x.Type} {x.Path}".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+    void SelectedItemsChanged(HashSet<ApplicationDetail> items)
+    {
+        if (items is not null)
+        {
+            SelectedApplications = items;
+        }
+    }
+}

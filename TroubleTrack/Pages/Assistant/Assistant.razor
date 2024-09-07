@@ -1,0 +1,41 @@
+﻿@page "/assistant"
+
+<MudItem Class="relative mb-3" xs="12" md="12" lg="12">
+    <MudText Typo="Typo.h2">TroubleTrack Assistant</MudText>
+    <div class="my-2">
+        <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+            Your on-demand assistant for seamless Profiler Agent setup.
+        </MudText>
+    </div>
+</MudItem>
+
+<MudPaper Style="max-height:50vh;min-height:50vh;">
+    @foreach (var message in messages)
+    {
+        <MudAlert Severity="Severity.Normal" Dense="true" Class="pa-3 ma-2" Icon="@Icons.Material.Outlined.Textsms">@message</MudAlert>
+    }
+</MudPaper>
+
+<MudPaper Class="d-flex flex-row px-2" Style="background-color: var(--mud-palette-background-grey);">
+    <MudIconButton Icon="@Icons.Material.Outlined.AutoAwesome"></MudIconButton>
+    <MudTextField T="string" @bind-Value="currentMessage" Lines="2" Placeholder="Input your troubleshooting question..." DisableUnderLine="true"></MudTextField>
+    <MudIconButton Icon="@Icons.Material.Outlined.Send" OnClick="SendMessage"></MudIconButton>
+</MudPaper>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Prompt { get; set; }
+
+    private string currentMessage = "";
+    private List<string> messages = new List<string>();
+
+    private void SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(currentMessage))
+        {
+            messages.Add(currentMessage);
+            currentMessage = "";
+        }
+    }
+}
