@@ -5,7 +5,7 @@ using TroubleTrack.Services.Presentation;
 namespace TroubleTrack.Services.Installer;
 public class LayoutService
 {
-    private readonly IUserPreferencesService _userPreferencesService;
+    private readonly UserPreferencesService _userPreferencesService;
     private Models.UserPreferences _userPreferences;
     private bool _systemPreferences;
 
@@ -15,7 +15,7 @@ public class LayoutService
 
     public MudTheme CurrentTheme { get; private set; }
 
-    public LayoutService(IUserPreferencesService userPreferencesService)
+    public LayoutService(UserPreferencesService userPreferencesService)
     {
         _userPreferencesService = userPreferencesService;
     }

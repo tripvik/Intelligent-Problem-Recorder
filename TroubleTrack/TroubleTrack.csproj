@@ -53,7 +53,9 @@
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
         <PackageReference Include="CliWrap" Version="3.6.4" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+        <PackageReference Include="MimeKit" Version="4.7.1" />
         <PackageReference Include="MudBlazor" Version="6.8.0" />
         <PackageReference Include="System.Management" Version="7.0.2" />
 		<FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />

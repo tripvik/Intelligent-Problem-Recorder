@@ -28,12 +28,13 @@ namespace TroubleTrack
 #endif
             builder.Services.AddMudServices();
             builder.Services.AddBlazoredLocalStorage();
-            builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
+            builder.Services.AddScoped<UserPreferencesService>();
             builder.Services.AddScoped<LayoutService>();
             builder.Services.AddScoped<AppExploreService>();
             builder.Services.AddScoped<AppStateService>();
             builder.Services.AddScoped<DotnetExplorerService>();
             builder.Services.AddSingleton<StepRecorderService>();
+            builder.Services.AddMemoryCache();
             return builder.Build();
         }
     }

@@ -1,0 +1,138 @@
+﻿@page "/recorder"
+@using TroubleTrack.Utilities
+
+@inject NavigationManager NavManager
+@inject StepRecorderService RecorderService
+@inject ILogger<Recorder> Logger
+@inject ISnackbar Snackbar
+@inject AppStateService StateService
+
+<MudGrid>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudText Typo="Typo.h3">Step 1: Record Issue</MudText>
+        <div class="pl-1 my-4">
+            <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+                @statusMessage
+            </MudText>
+        </div>
+        <div class="py-4 mb-16 mb-md-0 text-center">
+            @if (currentStatus == RecordingStatus.Idle)
+            {
+                <MudButton StartIcon="@Icons.Material.Filled.Mic" Te="Start Recording" OnClick="StartRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Record</MudButton>
+            }
+            else if (currentStatus == RecordingStatus.Recording || currentStatus == RecordingStatus.Saving)
+            {
+                <MudButton Disabled="(currentStatus == RecordingStatus.Saving)" StartIcon="@Icons.Material.Filled.Stop" OnClick="StopRecording" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
+                    @if (currentStatus == RecordingStatus.Saving)
+                    {
+                        <MudText Class="ms-2">Saving...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Stop Recording</MudText>
+                    }
+                </MudButton>
+            }
+            else if (currentStatus == RecordingStatus.Complete)
+            {
+                <MudButton StartIcon="@Icons.Material.Filled.Search" OnClick="AnalyzeRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Analyze</MudButton>
+            }
+        </div>
+        <div class="d-flex align-center py-4">
+            @if (currentStatus == RecordingStatus.Recording)
+            {
+                <MudProgressCircular Indeterminate="true" Class="mx-4" Color="Color.Info" Size="Size.Small" />
+                <MudText Typo="Typo.body1" Class="mt-2">Recording in progress...</MudText>
+            }
+            else if (currentStatus == RecordingStatus.Saving)
+            {
+                <MudProgressCircular Indeterminate="true" Class="mx-4" Color="Color.Info" Size="Size.Small" />
+                <MudText Typo="Typo.body1" Class="mt-2">Saving, please wait...</MudText>
+            }
+        </div>
+    </MudItem>
+</MudGrid>
+
+@if (currentStatus == RecordingStatus.Complete && steps != null && images != null)
+{
+    <MudItem xs="12">
+        @foreach (var (step, image, index) in steps.Zip(images, (s, i) => (s, i, steps.IndexOf(s))))
+        {
+            <MudCard Class="my-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Step @(index + 1)</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+                        @step
+                    </MudText>
+                    <img src="@($"data:image/jpeg;base64,{ConvertToBase64(image)}")" alt="Step @(index + 1) Image" style="max-width: 100%; height: auto;" />
+                </MudCardContent>
+            </MudCard>
+        }
+    </MudItem>
+}
+
+@code {
+    private enum RecordingStatus
+    {
+        Idle,
+        Recording,
+        Saving,
+        Complete
+    }
+
+    private RecordingStatus currentStatus = RecordingStatus.Idle;
+    private string statusMessage = "Click 'Record' to begin.";
+    private List<string> steps;
+    private List<string> images;
+
+    protected async Task StartRecording()
+    {
+        try
+        {
+            statusMessage = "Recording in progress. Reproduce the issue...";
+            currentStatus = RecordingStatus.Recording;
+            await RecorderService.StartRecordingAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.InnerException?.Message ?? ex.Message, Severity.Error);
+            currentStatus = RecordingStatus.Idle;
+            statusMessage = "An error occurred while starting the recording.";
+        }
+    }
+
+    private async Task StopRecording()
+    {
+        try
+        {
+            StateHasChanged();
+            statusMessage = "Saving the recording...";
+            currentStatus = RecordingStatus.Saving;
+            await RecorderService.StopRecordingAsync();
+            statusMessage = "Recording complete.";
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.InnerException?.Message ?? ex.Message, Severity.Error);
+            statusMessage = "An error occurred while stopping the recording.";
+        }
+        finally
+        {
+            currentStatus = RecordingStatus.Complete;
+        }
+    }
+
+    private void AnalyzeRecording()
+    {
+        var recordingZip = StateService.GetValue<string>("Recording");
+        var recordingFile = ZipExtractor.ExtractFile(recordingZip);
+        images = MhtExtractor.ExtractImages(recordingFile);
+        steps = MhtExtractor.ExtractSteps(recordingFile);
+    }
+
+    public static string ConvertToBase64(string filePath)
+    {
+        byte[] imageBytes = File.ReadAllBytes(filePath);
+        return Convert.ToBase64String(imageBytes);
+    }
+}

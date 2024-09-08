@@ -1,31 +1,77 @@
-﻿using CliWrap;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using TroubleTrack.Services.Presentation;
 
 namespace TroubleTrack.Services.Utilities
 {
     public class StepRecorderService
     {
+        #region Fields
+        private const string PsrExe = "psr.exe";
+        private const int SaveDelay = 5000;
+        private string _outputFilePath;
         private readonly ILogger<StepRecorderService> _logger;
-        private const string _psrExe = "psr.exe";
-        private const string _outputFilePath = @"c:\temp\";
+        private readonly AppStateService _appStateService;
 
-        public StepRecorderService(ILogger<StepRecorderService> logger)
+        #endregion
+
+        #region Constructor
+
+        public StepRecorderService(ILogger<StepRecorderService> logger, AppStateService appStateService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _appStateService = appStateService ?? throw new ArgumentNullException(nameof(appStateService));
+            _outputFilePath = Path.GetTempPath();
         }
 
-        public void StartRecording(bool captureScreenshots = true)
+        #endregion
+
+        #region Public Methods
+
+        public async Task StartRecordingAsync()
         {
-            InvokeProcess(_psrExe, $"/start /output \"{_outputFilePath}{DateTime.Now.Ticks}.zip\" /gui 0 /sc 1 /sketch 1 /maxsc 100");
+            _outputFilePath = Path.Combine(Path.GetTempPath(), $"{DateTime.Now.Ticks}.zip");
+            string parameters = $"/start /output \"{_outputFilePath}\" /gui 0 /sc 1 /sketch 1 /maxsc 100";
+
+            _logger.LogInformation("Starting PSR recording.");
+            TryKillProcess(PsrExe);
+            var process = InvokeProcess(PsrExe, parameters);
+            await Task.Delay(100);
+            if (process == null)
+            {
+                _logger.LogError("Failed to start PSR recording.");
+                throw new InvalidOperationException("Failed to start PSR recording.");
+            }
         }
 
-        public void StopRecording()
+        public async Task StopRecordingAsync()
         {
-            InvokeProcess(_psrExe, @"/stop").WaitForExit(60000);
+            try
+            {
+                var process = InvokeProcess(PsrExe, @"/stop");
+
+                if (process != null)
+                {
+                    await process.WaitForExitAsync().ConfigureAwait(false);
+                }
+
+                await Task.Delay(SaveDelay).ConfigureAwait(false);
+
+                if (File.Exists(_outputFilePath))
+                {
+                    _appStateService.SaveValue("Recording", _outputFilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unexpected exception while trying to stop PSR process: {ex.Message}");
+                TryKillProcess(PsrExe);
+            }
         }
 
-        #region Helpers
+        #endregion
+
+        #region Private Methods
 
         private Process InvokeProcess(string processName, string parameters)
         {
@@ -33,7 +79,7 @@ namespace TroubleTrack.Services.Utilities
             {
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = _psrExe,
+                    FileName = processName,
                     Arguments = parameters,
                     RedirectStandardOutput = false,
                     RedirectStandardError = false,
@@ -42,27 +88,34 @@ namespace TroubleTrack.Services.Utilities
                     CreateNoWindow = true
                 };
 
-                _logger.LogInformation($"Successfully executed {_psrExe} with arguments: {parameters}");
-
+                _logger.LogInformation($"Executing {processName} with arguments: {parameters}");
                 return Process.Start(startInfo);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error executing {_psrExe}.");
+                _logger.LogError(ex, $"Error executing {processName}.");
                 throw;
             }
         }
 
         private void TryKillProcess(string processName)
         {
-            Process[] processes = Process.GetProcessesByName(processName);
-            foreach (Process proc in processes)
+            try
             {
-                try { proc.Kill(); }
-                catch { throw; }
+                var processes = Process.GetProcessesByName(processName);
+                foreach (var proc in processes)
+                {
+                    proc.Kill();
+                }
+                _logger.LogInformation($"Successfully killed all instances of {processName}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error trying to kill process {processName}.");
+                throw;
             }
         }
 
-        #endregion Helpers
+        #endregion
     }
 }
