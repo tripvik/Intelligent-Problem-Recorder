@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using TroubleTrack.Services.Installer;
+using TroubleTrack.Services;
 
 namespace TroubleTrack.Shared
 {

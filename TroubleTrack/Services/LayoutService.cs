@@ -1,12 +1,11 @@
 ﻿using MudBlazor;
 using TroubleTrack.Models;
-using TroubleTrack.Services.Presentation;
 
-namespace TroubleTrack.Services.Installer;
+namespace TroubleTrack.Services;
 public class LayoutService
 {
     private readonly UserPreferencesService _userPreferencesService;
-    private Models.UserPreferences _userPreferences;
+    private UserPreferences _userPreferences;
     private bool _systemPreferences;
 
     public DarkLightMode DarkModeToggle = DarkLightMode.System;

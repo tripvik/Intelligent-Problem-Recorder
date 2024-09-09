@@ -8,7 +8,7 @@ namespace TroubleTrack
         {
             var theme = new MudTheme()
             {
-                Palette = AdminPanelLightPalette,
+                PaletteLight = AdminPanelLightPalette,
                 PaletteDark = AdminPanelDarkPalette,
                 LayoutProperties = new LayoutProperties(),
                 Typography = new Typography()

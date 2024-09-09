@@ -1,7 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using TroubleTrack.Models;
 
-namespace TroubleTrack.Services.Presentation
+namespace TroubleTrack.Services
 {
     public class UserPreferencesService
     {

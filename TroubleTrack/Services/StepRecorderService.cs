@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using TroubleTrack.Services.Presentation;
 
-namespace TroubleTrack.Services.Utilities
+namespace TroubleTrack.Services
 {
     public class StepRecorderService
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace TroubleTrack.Services.Presentation
+namespace TroubleTrack.Services
 {
     public class AppStateService
     {

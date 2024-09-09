@@ -1,10 +1,11 @@
 ﻿@page "/recorder"
-@using TroubleTrack.Utilities
+@using Microsoft.SemanticKernel
 
-@inject NavigationManager NavManager
-@inject StepRecorderService RecorderService
 @inject ILogger<Recorder> Logger
 @inject ISnackbar Snackbar
+@inject ImageAssistantService ImageService
+@inject NavigationManager NavManager
+@inject StepRecorderService RecorderService
 @inject AppStateService StateService
 
 <MudGrid>
@@ -16,14 +17,14 @@
             </MudText>
         </div>
         <div class="py-4 mb-16 mb-md-0 text-center">
-            @if (currentStatus == RecordingStatus.Idle)
+            @if (currentStatus == RecordingStatus.None)
             {
                 <MudButton StartIcon="@Icons.Material.Filled.Mic" Te="Start Recording" OnClick="StartRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Record</MudButton>
             }
-            else if (currentStatus == RecordingStatus.Recording || currentStatus == RecordingStatus.Saving)
+            else if (currentStatus == RecordingStatus.RecordingStarted || currentStatus == RecordingStatus.SavingRecording)
             {
-                <MudButton Disabled="(currentStatus == RecordingStatus.Saving)" StartIcon="@Icons.Material.Filled.Stop" OnClick="StopRecording" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
-                    @if (currentStatus == RecordingStatus.Saving)
+                <MudButton Disabled="(currentStatus == RecordingStatus.SavingRecording)" StartIcon="@Icons.Material.Filled.Stop" OnClick="StopRecording" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
+                    @if (currentStatus == RecordingStatus.SavingRecording)
                     {
                         <MudText Class="ms-2">Saving...</MudText>
                     }
@@ -33,27 +34,41 @@
                     }
                 </MudButton>
             }
-            else if (currentStatus == RecordingStatus.Complete)
+            else if (currentStatus == RecordingStatus.RecordingComplete || currentStatus == RecordingStatus.AnalysisStarted)
             {
-                <MudButton StartIcon="@Icons.Material.Filled.Search" OnClick="AnalyzeRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Analyze</MudButton>
+                <MudButton Disabled="(currentStatus == RecordingStatus.AnalysisStarted)" StartIcon="@Icons.Material.Filled.Stop" OnClick="AnalyzeSteps" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
+                    @if (currentStatus == RecordingStatus.AnalysisStarted)
+                    {
+                        <MudText Class="ms-2">Analyzing...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Analyze</MudText>
+                    }
+                </MudButton>
             }
         </div>
         <div class="d-flex align-center py-4">
-            @if (currentStatus == RecordingStatus.Recording)
+            @if (currentStatus == RecordingStatus.RecordingStarted)
             {
                 <MudProgressCircular Indeterminate="true" Class="mx-4" Color="Color.Info" Size="Size.Small" />
                 <MudText Typo="Typo.body1" Class="mt-2">Recording in progress...</MudText>
             }
-            else if (currentStatus == RecordingStatus.Saving)
+            else if (currentStatus == RecordingStatus.SavingRecording)
             {
                 <MudProgressCircular Indeterminate="true" Class="mx-4" Color="Color.Info" Size="Size.Small" />
                 <MudText Typo="Typo.body1" Class="mt-2">Saving, please wait...</MudText>
+            }
+            else if (currentStatus == RecordingStatus.AnalysisStarted)
+            {
+                <MudProgressCircular Indeterminate="true" Class="mx-4" Color="Color.Info" Size="Size.Small" />
+                <MudText Typo="Typo.body1" Class="mt-2">Analyzing, please wait...</MudText>
             }
         </div>
     </MudItem>
 </MudGrid>
 
-@if (currentStatus == RecordingStatus.Complete && steps != null && images != null)
+@if (currentStatus == RecordingStatus.RecordingComplete && steps != null && images != null)
 {
     <MudItem xs="12">
         @foreach (var (step, image, index) in steps.Zip(images, (s, i) => (s, i, steps.IndexOf(s))))
@@ -66,37 +81,61 @@
                     </MudText>
                     <img src="@($"data:image/jpeg;base64,{ConvertToBase64(image)}")" alt="Step @(index + 1) Image" style="max-width: 100%; height: auto;" />
                 </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => RemoveStep(index)">Remove Step</MudButton>
+                </MudCardActions>
             </MudCard>
         }
     </MudItem>
 }
 
+<MudDialog @bind-Visible="dialogVisible" Options="new() { FullWidth = true }">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Notes" Class="mr-3" /> Analysis Result
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (analysisResult is not null)
+        {
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap; overflow-wrap: break-word;">@analysisResult</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => dialogVisible = false" Class="px-10">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     private enum RecordingStatus
     {
-        Idle,
-        Recording,
-        Saving,
-        Complete
+        None,
+        RecordingStarted,
+        SavingRecording,
+        RecordingComplete,
+        AnalysisStarted,
+        AnalysisComplete
     }
 
-    private RecordingStatus currentStatus = RecordingStatus.Idle;
+    private RecordingStatus currentStatus = RecordingStatus.None;
     private string statusMessage = "Click 'Record' to begin.";
+    private ChatMessageContent analysisResult;
     private List<string> steps;
     private List<string> images;
+    private bool dialogVisible;
 
     protected async Task StartRecording()
     {
         try
         {
             statusMessage = "Recording in progress. Reproduce the issue...";
-            currentStatus = RecordingStatus.Recording;
+            currentStatus = RecordingStatus.RecordingStarted;
             await RecorderService.StartRecordingAsync();
         }
         catch (Exception ex)
         {
             Snackbar.Add(ex.InnerException?.Message ?? ex.Message, Severity.Error);
-            currentStatus = RecordingStatus.Idle;
+            currentStatus = RecordingStatus.None;
             statusMessage = "An error occurred while starting the recording.";
         }
     }
@@ -107,8 +146,9 @@
         {
             StateHasChanged();
             statusMessage = "Saving the recording...";
-            currentStatus = RecordingStatus.Saving;
+            currentStatus = RecordingStatus.SavingRecording;
             await RecorderService.StopRecordingAsync();
+            ShowRecordedSteps();
             statusMessage = "Recording complete.";
         }
         catch (Exception ex)
@@ -118,11 +158,11 @@
         }
         finally
         {
-            currentStatus = RecordingStatus.Complete;
+            currentStatus = RecordingStatus.RecordingComplete;
         }
     }
 
-    private void AnalyzeRecording()
+    private void ShowRecordedSteps()
     {
         var recordingZip = StateService.GetValue<string>("Recording");
         var recordingFile = ZipExtractor.ExtractFile(recordingZip);
@@ -130,9 +170,23 @@
         steps = MhtExtractor.ExtractSteps(recordingFile);
     }
 
-    public static string ConvertToBase64(string filePath)
+    private async Task AnalyzeSteps()
+    {
+        currentStatus = RecordingStatus.AnalysisStarted;
+        analysisResult = await ImageService.AnalyzeStepsAsync(images, steps);
+        currentStatus = RecordingStatus.AnalysisComplete;
+        dialogVisible = true;
+    }
+
+    private static string ConvertToBase64(string filePath)
     {
         byte[] imageBytes = File.ReadAllBytes(filePath);
         return Convert.ToBase64String(imageBytes);
+    }
+
+    private void RemoveStep(int stepIndex)
+    {
+        steps.RemoveAt(stepIndex);
+        images.RemoveAt(stepIndex);
     }
 }
