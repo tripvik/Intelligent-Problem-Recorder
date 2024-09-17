@@ -3,10 +3,10 @@
 
 1. Run **command prompt** as Administrator and navigate to procdump.
 
-    ![](/Dump/images/ManualDump1.png)
+    ![](../images/ManualDump1.png)
 
 1. Run the cmdlet and wait issue happen again.
     ```bash
     procdump -accepteula -e -ma -w w3wp.exe
     ```
-    ![](/Dump/images/crashdump1.png)
+    ![](../images/crashdump1.png)

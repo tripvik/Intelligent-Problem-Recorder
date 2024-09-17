@@ -1,31 +1,46 @@
----
-title: "Troubleshoot ASP.NET assembly loading failures using Fusion Logging"
-author_name: "Puneet Gupta"
-category: 'Diagnostics'
-comments: true
----
+Enable Fusion Logs (Assembly Binding Logging)
+---------------------------------------------
 
-ASP.NET Framework has fusion [Assembly Binding logging](https://docs.microsoft.com/en-us/dotnet/framework/tools/fuslogvw-exe-assembly-binding-log-viewer) (aka Fusion Logging) which allows you to debug assembly load failures in your .NET applications. Fusion logging comes handy when your application is referencing assemblies or external nuget packages and you are encountering assembly binding failures.
+Enable Fusion Logs so that you can see where the binding is failing. There are two ways to enable it:
 
-We are pleased to announce that you can **enable Fusion logging in Azure App Service on a per-app basis** and troubleshoot assembly failures easily.
+1.  Registry Editor
+2.  Fusion Log Viewer (fuslogvw.exe)
 
-> Currently offered in App Service for Windows web apps only and applies to classic ASP.NET Framework apps. This logging **does not** apply to ASP.NET Core apps.
+#### Registry Editor:
 
-## Enabling Fusion Logging
+1.  Open Registry Editor
+2.  Go to `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Fusion`
+3.  Change the value of `EnableLog` to `1`. If this key doesn't exist, create it (`DWORD(32-bit)` type)
 
-To enable fusion logging, follow these steps
+     ![](../Images/FusionLogs.png)
 
-1. Go to the [Azure Portal](https://portal.azure.com).
-2. Click on **Configuration** for your App.
-3. Under the **Application Settings** section, add a new application setting with the name **WEBSITE_FUSIONLOGGING_ENABLED** and a value of **1**. 
-4. Click the **Save** button.
+Other related registry keys:
 
-> Saving the application setting causes a restart of the app on all instances, so perform this step during low-usage hours.
+```
+DWORD ForceLog set value to 1
+DWORD LogFailures set value to 1
+DWORD LogResourceBinds set value to 1
+String LogPath set value to folder for logs (Example: C:\FusionLog\)
+```
 
-After you save this app setting, fusion logging will be enabled for your app. All processes launched for your app (w3wp.exe, w3wp.exe for the Kudu site, and any child processes of these processes) will have fusion logging enabled. This means you can use this feature to troubleshooting assembly binding issues even in WebJobs. Enabling fusion logging on one app does not enable it for other apps in the App Service Plan.
+#### Fusion Log Viewer (fuslogvw.exe)
 
-After fusion logging is enabled, if you browse to the page that was failing to load an assembly, you will now see detailed fusion logs emitted in the actual error message itself. An example is shown below.
+You can also use Microsoft's Fusion Log Viewer utility ([Reference](https://docs.microsoft.com/en-us/dotnet/framework/tools/fuslogvw-exe-assembly-binding-log-viewer)) to enable Fusion Logs. Fusion Log Viewer is installed with Visual Studio. It should be in your "Microsoft SDKs" folder (Example path: `C:\Program Files (x86)\Microsoft SDKs\Windows\v{SDK version}A\Bin\FUSLOGVW.exe`).
 
-![Fusion logging]({{site.baseurl}}/media/2020/09/fusion-logging-error.PNG)
+You can also run it by using Visual Studio Command Prompt (Run the command prompt as Administrator):
 
-Using fusion logging you can identify the exact assembly, the version, the location and other information about the whereabouts of the assembly. After you have diagnosed the root cause of the issue, be sure to **remove the app setting**. Fusion logging incurs some performance impact on the runtime of the application and leaving it enabled is not recommended in production.
+![](../Images/FusionLogs2.png)
+
+Steps to enable assembly binding via Fusion Log Viewer:
+
+1.  Click fuslogvw.exe or run it using Visual Studio Command Prompt
+2.  Click "**Settings**"
+3.  Select "**Log bind failures to disk**"
+4.  Check "**Enable custom log path**"
+5.  Create the directory you want the logs to be recorded in (Example: C:\FusionLogs)
+6.  Enter the path of this folder in "**Custom log path**" field
+7.  Click "**OK**"
+
+After enabling it, reproduce the issue. Then click "**Refresh**" in the Fusion Log Viewer. You should see the binding failure listed. Click "**View log**" to see more information.
+
+Disable assembly binding logging once you complete troubleshooting because it may affect your server's performance.

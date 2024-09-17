@@ -273,3 +273,8 @@ html, body {
         .isolated button, .isolated input[type="submit"], .isolated input[type="reset"], .isolated input[type="button"] {
             padding: 1px 6px;
         }
+
+    .isolated img {
+        max-width: 100% !important;
+    }
+

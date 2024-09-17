@@ -4,24 +4,24 @@
 
 1. Launch **Fiddler**
 
-    ![fiddler1.jpg](/Browsers/images/fiddler1.jpg)
+    ![fiddler1.jpg](../Images/fiddler1.jpg)
 
 1. Enable **decrypt HTTPS traffic**, it will prompt to install certificate. Please click ok.
 
-    ![fiddler2.jpg](/Browsers/images/fiddler2.jpg)
+    ![fiddler2.jpg](../Images/fiddler2.jpg)
 
 1. **Clear Cache**
 
-    ![fiddler3.jpg](/Browsers/images/fiddler3.jpg)
+    ![fiddler3.jpg](../Images/fiddler3.jpg)
 
 1. Open browser and **reproduce issue**
 
-    ![fiddler4.jpg](/Browsers/images/fiddler4.jpg)
+    ![fiddler4.jpg](../Images/fiddler4.jpg)
 
 1. **Save Captrue**
 
-    ![fiddler5.jpg](/Browsers/images/fiddler5.jpg)
+    ![fiddler5.jpg](../Images/fiddler5.jpg)
 
 1. **Clean session cache** and capture again for **good scenario**.
 
-    ![fiddler6.gif](/Browsers/images/fiddler6.gif)
+    ![fiddler6.gif](../Images/fiddler6.gif)
