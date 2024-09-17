@@ -1,5 +1,6 @@
 ﻿@page "/recorder"
 @using Microsoft.SemanticKernel
+@using System.Text.Json
 
 @inject ILogger<Recorder> Logger
 @inject ISnackbar Snackbar
@@ -10,7 +11,7 @@
 
 <MudGrid>
     <MudItem Class="relative" xs="12" md="12" lg="12">
-        <MudText Typo="Typo.h3">Step 1: Record Issue</MudText>
+        <MudText Typo="Typo.h3"><b>Step 1</b> : Record The Issue</MudText>
         <div class="pl-1 my-4">
             <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
                 @statusMessage
@@ -19,7 +20,7 @@
         <div class="py-4 mb-16 mb-md-0 text-center">
             @if (currentStatus == RecordingStatus.None)
             {
-                <MudButton StartIcon="@Icons.Material.Filled.Mic" Te="Start Recording" OnClick="StartRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Record</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Adjust" OnClick="StartRecording" Color="Color.Primary" Variant="Variant.Filled" Style="width:200px;height:50px;border-radius:30px">Record</MudButton>
             }
             else if (currentStatus == RecordingStatus.RecordingStarted || currentStatus == RecordingStatus.SavingRecording)
             {
@@ -36,7 +37,7 @@
             }
             else if (currentStatus == RecordingStatus.RecordingComplete || currentStatus == RecordingStatus.AnalysisStarted)
             {
-                <MudButton Disabled="(currentStatus == RecordingStatus.AnalysisStarted)" StartIcon="@Icons.Material.Filled.Stop" OnClick="AnalyzeSteps" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
+                    <MudButton Disabled="(currentStatus == RecordingStatus.AnalysisStarted)" StartIcon="@Icons.Material.Filled.AutoAwesome" OnClick="AnalyzeSteps" Variant="Variant.Filled" Color="Color.Primary" Style="width:200px;height:50px;border-radius:30px">
                     @if (currentStatus == RecordingStatus.AnalysisStarted)
                     {
                         <MudText Class="ms-2">Analyzing...</MudText>
@@ -149,7 +150,7 @@
             currentStatus = RecordingStatus.SavingRecording;
             await RecorderService.StopRecordingAsync();
             ShowRecordedSteps();
-            statusMessage = "Recording complete.";
+            statusMessage = "Recording is complete. Verify the recorded steps and click on Analyze.";
         }
         catch (Exception ex)
         {
@@ -172,10 +173,19 @@
 
     private async Task AnalyzeSteps()
     {
-        currentStatus = RecordingStatus.AnalysisStarted;
-        analysisResult = await ImageService.AnalyzeStepsAsync(images, steps);
-        currentStatus = RecordingStatus.AnalysisComplete;
-        dialogVisible = true;
+        try
+        {
+            currentStatus = RecordingStatus.AnalysisStarted;
+            analysisResult = await ImageService.AnalyzeStepsAsync(images, steps);
+            var analysisModel = JsonSerializer.Deserialize<AnalysisModel>(analysisResult.ToString());
+            StateService.SaveValue<AnalysisModel>(nameof(AnalysisModel), analysisModel);
+            currentStatus = RecordingStatus.AnalysisComplete;
+            NavManager.NavigateTo("collection");
+        }
+        catch(Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
     }
 
     private static string ConvertToBase64(string filePath)

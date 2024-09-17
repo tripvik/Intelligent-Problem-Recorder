@@ -1,0 +1,81 @@
+﻿@page "/final"
+@using System.Diagnostics
+@inject AppStateService StateService
+@inject ISnackbar Snackbar
+
+<MudGrid>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudText Typo="Typo.h3">Success!</MudText>
+        <div class="pl-1 my-4">
+            <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+                Please create a support ticket with the following summary and the data collected.
+            </MudText>
+        </div>
+    </MudItem>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudCard>
+            <MudCardContent>
+                <div class="mb-12">
+                    <MudText Typo="Typo.h5" Class="mb-6">Support Request Summary</MudText>
+                    <MudText Typo="Typo.body1" Style="font-family:Consolas">
+                        @Summary
+                    </MudText>
+                </div>
+                <div class="mb-12">
+                    <MudText Typo="Typo.h5" Class="mb-6">Upload Data Location</MudText>
+                    <MudText Typo="Typo.body1" Style="font-family:Consolas">
+                        @DataZipPath
+                    </MudText>
+                </div>
+            </MudCardContent>
+            <MudCardActions>
+                <div class="d-flex justify-space-between">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="() => OpenFolder(DataZipPath)">
+                        Open Data Path
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="() => CopyToClipboard(Summary)">
+                        Copy Summary
+                    </MudButton>
+                </div>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public string Summary { get; set; }
+    public string DataZipPath { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var analysisModel = StateService.GetValue<AnalysisModel>(nameof(AnalysisModel));
+        Summary = analysisModel.Summary;
+        DataZipPath = StateService.GetValue<string>("ZipFilePath");
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            await Clipboard.SetTextAsync(text);
+            Snackbar.Add("Copied to clipboard!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("No data path available.", Severity.Warning);
+        }
+    }
+
+    public void OpenFolder(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = filePath,
+                UseShellExecute = true
+            });
+        }
+    }
+}

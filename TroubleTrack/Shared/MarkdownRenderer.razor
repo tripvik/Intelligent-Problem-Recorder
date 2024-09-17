@@ -1,0 +1,38 @@
+﻿@using Markdig
+@using System.IO
+@using System.Text
+@inject IJSRuntime JS
+
+@if (!string.IsNullOrEmpty(htmlContent))
+{
+    <div class="isolated">
+        @((MarkupString)htmlContent)
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string MarkDownName { get; set; }
+    private string mdContent;
+    private string htmlContent;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(MarkDownName))
+        {
+            try
+            {
+                using var stream = await FileSystem.OpenAppPackageFileAsync($"wwwroot/Markdown/{MarkDownName}.md");
+                using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                mdContent = await reader.ReadToEndAsync();
+                var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+                htmlContent = Markdown.ToHtml(mdContent ?? string.Empty, pipeline);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+}

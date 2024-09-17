@@ -1,0 +1,145 @@
+﻿@page "/upload"
+@using System.IO.Compression
+@inject ISnackbar Snackbar
+@inject AppStateService StateService
+@inject NavigationManager NavManager
+
+<MudGrid>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudText Typo="Typo.h3"><b>Step 3</b> : Prepare to Upload</MudText>
+        <div class="pl-1 my-4">
+            <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">
+                Please upload the collected data here.
+            </MudText>
+        </div>
+    </MudItem>
+    <MudItem Class="relative" xs="12" md="12" lg="12">
+        <MudStack Style="width: 100%">
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                           @ref="@_fileUpload"
+                           FilesChanged="OnFilesChanged"
+                           AppendMultipleFiles
+                           Hidden="@false"
+                           InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                           InputStyle="opacity:0"
+                           tabindex="-1"
+                           @ondrop="@ClearDragClass"
+                           @ondragenter="@SetDragClass"
+                           @ondragleave="@ClearDragClass"
+                           @ondragend="@ClearDragClass">
+                <ActivatorContent>
+                    <MudPaper Height="300px"
+                              Outlined="true"
+                              Class="@(_dragClass)">
+                        <MudText Typo="Typo.h6" Class="d-flex align-center pb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mx-3" />
+                            Drop files here or click here
+                        </MudText>
+                        @foreach (var file in _fileNames)
+                        {
+                            <MudChip T="string"
+                                     Color="Color.Dark"
+                                     Text="@file"
+                                     tabindex="-1" />
+                        }
+                    </MudPaper>
+                </ActivatorContent>
+            </MudFileUpload>
+            <MudToolBar Gutters="@false"
+                        Class="relative d-flex justify-end gap-4">
+                <MudButton Color="Color.Error"
+                           Disabled="@(!_fileNames.Any())"
+                           OnClick="@ClearAsync"
+                           Variant="Variant.Filled"
+                           Style="height:40px;border-radius:30px">
+                    Clear
+                </MudButton>
+                <MudButton Color="Color.Primary"
+                           Disabled="@(!_fileNames.Any())"
+                           OnClick="@UploadAndZip"
+                           Variant="Variant.Filled"
+                           Style="height:40px;border-radius:30px">
+                    Proceed
+                </MudButton>
+
+            </MudToolBar>
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<string> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>> _fileUpload;
+    IList<IBrowserFile> _files = new List<IBrowserFile>();
+
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        _files.Clear();
+        ClearDragClass();
+    }
+
+    private void OnFilesChanged(IReadOnlyList<IBrowserFile> files)
+    {
+        ClearDragClass();
+        foreach (var file in files)
+        {
+            _fileNames.Add(file.Name);
+            _files.Add(file);
+        }
+    }
+
+    private async Task UploadAndZip()
+    {
+        if (_files == null || !_files.Any())
+        {
+            Snackbar.Add("No files to zip!", Severity.Warning);
+            return;
+        }
+
+        var tempPath = Path.GetTempPath();
+        var zipFilePath = Path.Combine(tempPath, $"UploadFiles_{DateTime.Now.Ticks}.zip");
+
+        using (var zipFile = new FileStream(zipFilePath, FileMode.Create))
+        {
+            using (var archive = new ZipArchive(zipFile, ZipArchiveMode.Create))
+            {
+                foreach (var file in _files)
+                {
+                    var entry = archive.CreateEntry(file.Name);
+                    using (var entryStream = entry.Open())
+                    using (var fileStream = file.OpenReadStream())
+                    {
+                        await fileStream.CopyToAsync(entryStream);
+                    }
+                }
+
+                var recordingPath = StateService.GetValue<string>("Recording");
+                if (File.Exists(recordingPath))
+                {
+                    var entry = archive.CreateEntry("Recording.zip");
+                    using (var entryStream = entry.Open())
+                    using (var fileStream = new FileStream(recordingPath, FileMode.Open, FileAccess.Read))
+                    {
+                        await fileStream.CopyToAsync(entryStream);
+                    }
+                }
+            }
+        }
+
+        Snackbar.Add($"Files zipped successfully!", Severity.Success);
+        StateService.SaveValue("ZipFilePath", zipFilePath);
+        NavManager.NavigateTo("final");
+    }
+
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+
+}
