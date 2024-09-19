@@ -7,7 +7,7 @@ namespace TroubleTrack.Utilities
             Your response should be in fllowing JSON format.
 
             {
-                "Summary": "[A brief summary of the issues identified from the screenshots]",
+                "Summary": "[A brief summary of the issues identified from the screenshots. Phrase it from the user perspective.]",
                 "DataCollection": [
                     {
                         "Data": "[TroubleshootingDataType]",
