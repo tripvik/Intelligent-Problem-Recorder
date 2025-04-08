@@ -1,52 +1,82 @@
-# TroubleTrack
+# 🧠 Intelligent Problem Recorder
 
-TroubleTrack offers a streamlined installation and diagnostic experience across .NET frameworks, web apps, and associated infrastructures. With TroubleTrack, developers and administrators can effortlessly gain vital insights into their application performance, pinpointing bottlenecks and potential enhancements.
+**AI-Powered Problem Reproduction and Data Collection Assistant for Faster, Smarter Technical Support**
 
-![Screenshot](/readme_images/home.png)
+---
 
-## Table of Contents
+## 🚀 Overview
 
-- [Features](#features)
-- [System Requirements](#system-requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
+Support cases typically follow four key stages:  
+➡️ **Problem Definition** → 🗂️ **Data Collection** → 🛠️ **Solution Development** → ✅ **Solution Validation**
 
-## Features
+Among these, **Scoping** and **Data Collection** are the foundation of an effective resolution process. Yet, in many real-world support scenarios, these steps are rushed or inadequately documented—limiting the engineer's ability to prepare and research ahead of time.
 
-- **Smart Diagnostics**: Dynamically identify issues within .NET applications, web apps, and infrastructure, ensuring you catch even the most elusive problems.
-- **IIS Troubleshooting**: Dive deep into issues with IIS, from server misconfigurations to application pool challenges. Get guided solutions tailored to common IIS problems.
-- **Conversational Troubleshooting with Azure OpenAI**: Engage in an intuitive chat-based interface, powered by Azure OpenAI. Describe your issues in natural language and receive intelligent, context-aware solutions.
-- **Granular Analysis**: Select specific components or areas for in-depth inspection, giving you a microscopic view of potential bottlenecks and optimization opportunities.
-- **Broad Compatibility**: Specially designed for a vast spectrum of .NET frameworks and web app configurations, ensuring maximum coverage for your troubleshooting needs.
-- **Intuitive Experience**: A straightforward installation and diagnostic journey, complemented by a sleek, modern user interface.
+The **Intelligent Problem Recorder (IPR)** addresses this challenge by combining step recording, image analysis, and AI-based insights to assist both customers and support engineers in the early stages of issue resolution.
 
-## System Requirements
+---
 
-- Windows Server 2012R2 or later.
-- .NET SDK/Runtime installed.
-- Adequate system privileges for diagnostic procedures.
+![1](readme_images/1.gif)
 
-## Installation
+## 🎯 Problem Statement
 
-1. **Download**: Coming Soon.. [Releases page](link-to-releases-page). 
-2. **Execute**: Initiate the downloaded installer:
-    ```bash
-    ./DotNetDoctorInstaller.msi
-    ```
-3. Follow the on-screen prompts to finalize the installation.
+Support engineers often receive minimal details when cases are logged. Many users prefer to describe the problem verbally during meetings rather than thoroughly documenting it. This lack of upfront detail restricts engineers from conducting proactive research, ultimately increasing case resolution time.
 
-## Usage
+---
 
-1. Open the TroubleTrack from the Start Menu or your preferred Application Launcher.  
-2. Let the tool scan your system for potential .NET-related issues or components requiring diagnostics.  
-3. Select the components or areas you wish to inspect.  
-4. Conclude the diagnostic process and review the insights and recommendations provided.
+## 💡 Solution
 
-## Troubleshooting
+This tool enhances traditional [problem step recording](https://support.microsoft.com/en-us/windows/steps-recorder-deprecation-a64888d7-8482-4965-8ce3-25fb004e975f) by integrating AI-powered analysis and intelligent data recommendations. The **Intelligent Problem Recorder** enables users to document issues clearly, receive contextual suggestions for scoping, and package relevant data into a single report for support teams.
 
-Facing any challenges? Review the [Troubleshooting Guide](link-to-troubleshooting-guide) or explore our [FAQs](link-to-FAQ).
+---
 
-## Contributing
-Interested in enhancing Microsoft .NET Doctor? We welcome contributions! Feel free to submit a PR.
+## 🔍 How It Works
+
+1. **Customer Encounters an Issue**  
+   While logging a case, the customer is prompted to use the IPR tool to capture the issue steps.
+
+2. **Record & Refine**  
+   The user records the problem reproduction steps and removes any unnecessary actions.
+
+3. **AI-Powered Analysis**  
+   On clicking "Analyze", the tool:
+   - Detects the nature of the issue using image and step analysis  
+   - Suggests **common scoping questions**  
+   - Recommends **additional data collection** steps  
+   - Provides simple self-help suggestions where applicable
+
+4. **Generate Package**  
+   A single, zipped package is generated containing:
+   - Step-by-step trace of the issue
+   - Any supplementary files or logs
+   - An auto-generated summary of the problem
+
+5. **Support Engineer Review**  
+   With access to this structured input, the engineer can quickly understand the context, perform pre-analysis, and begin deeper investigation—**saving an estimated 20% of case lifecycle effort**.
+
+---
+
+## 📦 Features
+
+- ✅ Step-by-step issue reproduction with screenshots  
+- 🤖 AI-based image and step analysis (needs model that supports image modality) 
+- 💬 Contextual scoping questions and data suggestions  
+- 🧾 Auto-generated case summaries  
+- 📁 One-click packaging of all relevant information
+
+---
+
+## 🔮 Future Scope
+
+- 📱 **Multi-device data collection** for complex client-server issues  
+- 🧠 **Integration with on-device LLMs** to enhance real-time suggestions  
+- 🧪 **Pilot testing with support teams** to gather feedback and iterate  
+- 🌐 **Expanding AI models** to cover a broader range of technical issues
+
+---
+
+## 📈 Impact
+
+The **Intelligent Problem Recorder** streamlines case creation and investigation by ensuring engineers receive well-scoped, data-rich case submissions—leading to faster issue resolution, reduced back-and-forth communication, and improved customer satisfaction.
+
+---
+
